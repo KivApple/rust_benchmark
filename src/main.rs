@@ -3,22 +3,15 @@ use std::collections::HashMap;
 use std::cmp::{min, max};
 use glam::Vec3;
 
-#[derive(Debug, Clone, Copy)]
-struct SkyboxVertexData {
-	pos: Vec3
-}
-
-fn mid_vertex_for_edge(cache: &mut HashMap<(u32, u32), u32>, vertexes: &mut Vec<SkyboxVertexData>, first: u32, second: u32) -> u32 {
+fn mid_vertex_for_edge(cache: &mut HashMap<(u32, u32), u32>, vertexes: &mut Vec<Vec3>, first: u32, second: u32) -> u32 {
 	let key = (min(first, second), max(first, second));
 	*cache.entry(key).or_insert_with(|| {
-		vertexes.push(SkyboxVertexData { 
-			pos: (vertexes[first as usize].pos + vertexes[second as usize].pos).normalize()
-		});
+		vertexes.push((vertexes[first as usize] + vertexes[second as usize]).normalize());
 		(vertexes.len() - 1) as u32
 	})
 }
 
-fn subdivide_mesh(vertexes: &mut Vec<SkyboxVertexData>, triangles: &Vec<(u32, u32, u32)>) -> Vec<(u32, u32, u32)> {
+fn subdivide_mesh(vertexes: &mut Vec<Vec3>, triangles: &Vec<(u32, u32, u32)>) -> Vec<(u32, u32, u32)> {
 	let mut result = Vec::new();
 	let mut cache = HashMap::new();
 	for triangle in triangles {
@@ -35,24 +28,24 @@ fn subdivide_mesh(vertexes: &mut Vec<SkyboxVertexData>, triangles: &Vec<(u32, u3
 	result
 }
 
-fn generate_mesh(subdivision_count: u32) -> (Vec<SkyboxVertexData>, Vec<(u32, u32, u32)>) {
+fn generate_mesh(subdivision_count: u32) -> (Vec<Vec3>, Vec<(u32, u32, u32)>) {
 	const X: f32 = 0.525731112119133606;
 	const Z: f32 = 0.850650808352039932;
 	const N: f32 = 0.0;
 	
 	let mut vertexes = vec![
-		SkyboxVertexData { pos: Vec3::new(-X, N, Z) }, 
-		SkyboxVertexData { pos: Vec3::new(X, N, Z) }, 
-		SkyboxVertexData { pos: Vec3::new(-X, N, -Z) }, 
-		SkyboxVertexData { pos: Vec3::new(X, N, -Z) },
-		SkyboxVertexData { pos: Vec3::new(N, Z, X) }, 
-		SkyboxVertexData { pos: Vec3::new(N, Z, -X) }, 
-		SkyboxVertexData { pos: Vec3::new(N, -Z, X) }, 
-		SkyboxVertexData { pos: Vec3::new(N, -Z, -X) },
-		SkyboxVertexData { pos: Vec3::new(Z, X, N) }, 
-		SkyboxVertexData { pos: Vec3::new(-Z, X, N) }, 
-		SkyboxVertexData { pos: Vec3::new(Z, -X, N) },
-		SkyboxVertexData { pos: Vec3::new(-Z, -X, N) }
+		Vec3::new(-X, N, Z), 
+		Vec3::new(X, N, Z), 
+		Vec3::new(-X, N, -Z), 
+		Vec3::new(X, N, -Z),
+		Vec3::new(N, Z, X), 
+		Vec3::new(N, Z, -X), 
+		Vec3::new(N, -Z, X), 
+		Vec3::new(N, -Z, -X),
+		Vec3::new(Z, X, N), 
+		Vec3::new(-Z, X, N), 
+		Vec3::new(Z, -X, N),
+		Vec3::new(-Z, -X, N)
 	];
 
 	let mut triangles = vec![
