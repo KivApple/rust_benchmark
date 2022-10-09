@@ -67,7 +67,7 @@ fn generate_mesh(subdivision_count: u32) -> (Vec<Vec3>, Vec<(u32, u32, u32)>) {
 
 	vertexes.reserve(predicted_vertex_count - vertexes.len());
 	triangles.reserve(predicted_triangle_count - triangles.len());
-	let mut tmp_triangles = Vec::with_capacity(predicted_triangle_count);
+	let mut tmp_triangles = Vec::with_capacity(predicted_triangle_count / 4);
 	let mut cache = HashMap::with_capacity(predicted_cache_size);
 
 	for _ in 0..subdivision_count {
@@ -77,6 +77,7 @@ fn generate_mesh(subdivision_count: u32) -> (Vec<Vec3>, Vec<(u32, u32, u32)>) {
 
 	debug_assert!(vertexes.len() == predicted_vertex_count);
 	debug_assert!(triangles.len() == predicted_triangle_count);
+	debug_assert!(tmp_triangles.len() == predicted_triangle_count / 4);
 	debug_assert!(cache.len() == predicted_cache_size);
 
 	(vertexes, triangles)
