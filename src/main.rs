@@ -11,14 +11,14 @@ fn mid_vertex_for_edge(cache: &mut HashMap<(u32, u32), u32>, vertexes: &mut Vec<
 	})
 }
 
-fn subdivide_mesh(vertexes: &mut Vec<Vec3>, triangles: &Vec<(u32, u32, u32)>) -> Vec<(u32, u32, u32)> {
-	let mut result = Vec::with_capacity(triangles.len() * 4);
-	let mut cache = HashMap::with_capacity(triangles.len() + triangles.len() / 2);
+fn subdivide_mesh(vertexes: &mut Vec<Vec3>, triangles: &Vec<(u32, u32, u32)>, cache: &mut HashMap<(u32, u32), u32>, result: &mut Vec<(u32, u32, u32)>) {
+	cache.clear();
+	result.clear();
 	for triangle in triangles {
 		let mid = (
-			mid_vertex_for_edge(&mut cache, vertexes, triangle.0, triangle.1),
-			mid_vertex_for_edge(&mut cache, vertexes, triangle.1, triangle.2),
-			mid_vertex_for_edge(&mut cache, vertexes, triangle.2, triangle.0)
+			mid_vertex_for_edge(cache, vertexes, triangle.0, triangle.1),
+			mid_vertex_for_edge(cache, vertexes, triangle.1, triangle.2),
+			mid_vertex_for_edge(cache, vertexes, triangle.2, triangle.0)
 		);
 		result.push((triangle.0, mid.0, mid.2));
 		result.push((triangle.1, mid.1, mid.0));
@@ -27,7 +27,6 @@ fn subdivide_mesh(vertexes: &mut Vec<Vec3>, triangles: &Vec<(u32, u32, u32)>) ->
 	}
 	debug_assert!(result.len() == triangles.len() * 4);
 	debug_assert!(cache.len() == triangles.len() + triangles.len() / 2);
-	result
 }
 
 fn generate_mesh(subdivision_count: u32) -> (Vec<Vec3>, Vec<(u32, u32, u32)>) {
@@ -57,18 +56,29 @@ fn generate_mesh(subdivision_count: u32) -> (Vec<Vec3>, Vec<(u32, u32, u32)>) {
 		(6, 1, 10), (9, 0, 11), (9, 11, 2), (9, 2, 5), (7, 2, 11)
 	];
 
-	let mut predicted_triangle_count = vertexes.len();
+	let mut predicted_vertex_count = vertexes.len();
+	let mut predicted_triangle_count = triangles.len();
+	let mut predicted_cache_size = 0;
 	for _ in 0..subdivision_count {
-		predicted_triangle_count = predicted_triangle_count * 4 - 6;
+		predicted_cache_size = predicted_triangle_count + predicted_triangle_count / 2;
+		predicted_vertex_count = predicted_vertex_count * 4 - 6;
+		predicted_triangle_count *= 4;
 	}
-	vertexes.reserve(predicted_triangle_count - vertexes.len());
+
+	vertexes.reserve(predicted_vertex_count - vertexes.len());
+	triangles.reserve(predicted_triangle_count - triangles.len());
+	let mut tmp_triangles = Vec::with_capacity(predicted_triangle_count);
+	let mut cache = HashMap::with_capacity(predicted_cache_size);
 
 	for _ in 0..subdivision_count {
-		triangles = subdivide_mesh(&mut vertexes, &triangles);
+		subdivide_mesh(&mut vertexes, &triangles, &mut cache, &mut tmp_triangles);
+		std::mem::swap(&mut triangles, &mut tmp_triangles);
 	}
 
-	debug_assert!(vertexes.len() == predicted_triangle_count);
-	
+	debug_assert!(vertexes.len() == predicted_vertex_count);
+	debug_assert!(triangles.len() == predicted_triangle_count);
+	debug_assert!(cache.len() == predicted_cache_size);
+
 	(vertexes, triangles)
 }
 
