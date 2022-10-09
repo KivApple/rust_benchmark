@@ -57,9 +57,17 @@ fn generate_mesh(subdivision_count: u32) -> (Vec<Vec3>, Vec<(u32, u32, u32)>) {
 		(6, 1, 10), (9, 0, 11), (9, 11, 2), (9, 2, 5), (7, 2, 11)
 	];
 
+	let mut predicted_triangle_count = vertexes.len();
+	for _ in 0..subdivision_count {
+		predicted_triangle_count = predicted_triangle_count * 4 - 6;
+	}
+	vertexes.reserve(predicted_triangle_count - vertexes.len());
+
 	for _ in 0..subdivision_count {
 		triangles = subdivide_mesh(&mut vertexes, &triangles);
 	}
+
+	debug_assert!(vertexes.len() == predicted_triangle_count);
 	
 	(vertexes, triangles)
 }
