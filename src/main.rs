@@ -12,8 +12,8 @@ fn mid_vertex_for_edge(cache: &mut HashMap<(u32, u32), u32>, vertexes: &mut Vec<
 }
 
 fn subdivide_mesh(vertexes: &mut Vec<Vec3>, triangles: &Vec<(u32, u32, u32)>) -> Vec<(u32, u32, u32)> {
-	let mut result = Vec::new();
-	let mut cache = HashMap::new();
+	let mut result = Vec::with_capacity(triangles.len() * 4);
+	let mut cache = HashMap::with_capacity(triangles.len() + triangles.len() / 2);
 	for triangle in triangles {
 		let mid = (
 			mid_vertex_for_edge(&mut cache, vertexes, triangle.0, triangle.1),
@@ -25,6 +25,8 @@ fn subdivide_mesh(vertexes: &mut Vec<Vec3>, triangles: &Vec<(u32, u32, u32)>) ->
 		result.push((triangle.2, mid.2, mid.1));
 		result.push(mid);
 	}
+	debug_assert!(result.len() == triangles.len() * 4);
+	debug_assert!(cache.len() == triangles.len() + triangles.len() / 2);
 	result
 }
 
