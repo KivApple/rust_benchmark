@@ -1,5 +1,5 @@
 use std::time::Instant;
-use std::collections::HashMap;
+use ahash::AHashMap as HashMap;
 use std::cmp::{min, max};
 use glam::Vec3;
 
