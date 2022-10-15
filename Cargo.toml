@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 glam = "0.21.3"
 ahash = "0.8.0"
+rgb = "0.8"
+byteorder = "1"
